@@ -1,0 +1,30 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="RecMove.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="TextBox_SrcDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">H:\</Value>
+    </Setting>
+    <Setting Name="TextBox_DstDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">W:\スプラ</Value>
+    </Setting>
+    <Setting Name="TextBox_FileExtention" Type="System.String" Scope="User">
+      <Value Profile="(Default)">*.mp4;*.jpg</Value>
+    </Setting>
+    <Setting Name="Check_CreateYmdFolder" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="Check_SaveSubFolder" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Check_CopyMode" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Check_SeqNumberAdd" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Check_Overwite" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
