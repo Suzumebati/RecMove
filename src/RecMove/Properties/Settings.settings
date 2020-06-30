@@ -26,5 +26,11 @@
     <Setting Name="Check_Overwite" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="TextBox_Title" Type="System.String" Scope="User">
+      <Value Profile="(Default)">☓☓練習　その{REC_INDEX} ({REC_DATE})</Value>
+    </Setting>
+    <Setting Name="Check_YoutubeUpload" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

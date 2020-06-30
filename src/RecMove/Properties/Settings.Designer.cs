@@ -118,5 +118,29 @@ namespace RecMove.Properties {
                 this["Check_Overwite"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("☓☓練習　その{REC_INDEX} ({REC_DATE})")]
+        public string TextBox_Title {
+            get {
+                return ((string)(this["TextBox_Title"]));
+            }
+            set {
+                this["TextBox_Title"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool Check_YoutubeUpload {
+            get {
+                return ((bool)(this["Check_YoutubeUpload"]));
+            }
+            set {
+                this["Check_YoutubeUpload"] = value;
+            }
+        }
     }
 }

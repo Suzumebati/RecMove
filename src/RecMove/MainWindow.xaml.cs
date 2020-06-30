@@ -72,9 +72,9 @@ namespace RecMove
         /// <param name="e"></param>
         private void Window_StateChanged(object sender, EventArgs e)
         {
-            if (this.WindowState == WindowState.Minimized)
+            if (WindowState == WindowState.Minimized)
             {
-                this.Hide();
+                Hide();
             }
         }
 
@@ -85,14 +85,14 @@ namespace RecMove
         /// <param name="e"></param>
         private void MenuItem_VisibleClick(object sender, RoutedEventArgs e)
         {
-            if (this.Visibility == Visibility.Hidden)
+            if (Visibility == Visibility.Hidden)
             {
-                this.Show();
-                this.WindowState = WindowState.Normal;
+                Show();
+                WindowState = WindowState.Normal;
             }
             else
             {
-                this.Hide();
+                Hide();
             }
         }
 
@@ -103,7 +103,7 @@ namespace RecMove
         /// <param name="e"></param>
         private void MenuItem_CLoseClick(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         /// <summary>
@@ -126,14 +126,23 @@ namespace RecMove
                         if (TextBox_SrcDir.Text.StartsWith(mountedPath))
                         {
                             Label_Status.Content = $"指定ドライブのマウントを確認しました。Path={TextBox_SrcDir.Text}";
-                            MoveFileAsync(TextBox_SrcDir.Text,
-                                TextBox_DstDir.Text,
-                                TextBox_FileExtention.Text,
-                                Check_CreateYmdFolder.IsChecked,
-                                Check_SaveSubFolder.IsChecked,
-                                Check_CopyMode.IsChecked,
-                                Check_Overwite.IsChecked,
-                                Check_SeqNumberAdd.IsChecked);
+                            if (this.Check_YoutubeUpload.IsChecked ?? false)
+                            {
+                                // Youtubeダイアログを開く
+                                ShowYoutubeDialog();
+                            }
+                            else
+                            {
+                                // ファイル移動する
+                                MoveFileAsync(TextBox_SrcDir.Text,
+                                    TextBox_DstDir.Text,
+                                    TextBox_FileExtention.Text,
+                                    Check_CreateYmdFolder.IsChecked ?? false,
+                                    Check_SaveSubFolder.IsChecked ?? false,
+                                    Check_CopyMode.IsChecked ?? false,
+                                    Check_Overwite.IsChecked ?? false,
+                                    Check_SeqNumberAdd.IsChecked ?? false);
+                            }
                         }
                     }
                     break;
@@ -152,11 +161,11 @@ namespace RecMove
             string srcDirPath,
             string dstDirPath,
             string fileExtention,
-            bool? createYmdFolder,
-            bool? saveSubFolder,
-            bool? copyMode,
-            bool? overwite,
-            bool? seqNumberAdd)
+            bool createYmdFolder,
+            bool saveSubFolder,
+            bool copyMode,
+            bool overwite,
+            bool seqNumberAdd)
         {
             return Task.Factory.StartNew(() =>
             {
@@ -164,19 +173,14 @@ namespace RecMove
                 var dstDirAddPath = CreateDstFolder(dstDirPath, createYmdFolder);
                 if (dstDirAddPath == null)
                 {
-                    this.Dispatcher.Invoke((Action)(() =>
-                    {
-                        Label_Status.Content = $"移動先フォルダが作成できませんでした。移動先->{dstDirAddPath}";
-                    }));
+                    SetStatusLabel($"移動先フォルダが作成できませんでした。移動先->{dstDirAddPath}");
+                    return;
                 }
 
                 // ファイルを移動する
                 MoveFiles(srcDirPath, dstDirAddPath, fileExtention, saveSubFolder, copyMode, overwite, seqNumberAdd);
 
-                this.Dispatcher.Invoke((Action)(() =>
-                {
-                    Label_Status.Content = $"ファイルの移動完了 {srcDirPath} -> {dstDirAddPath}";
-                }));
+                SetStatusLabel($"ファイルの移動完了 {srcDirPath} -> {dstDirAddPath}");
 
                 // 移動完了時のサウンド再生
                 PlayCompleteSoundAsync();
@@ -241,19 +245,17 @@ namespace RecMove
             string srcDirPath,
             string dstDirAddDate,
             string fileExtention,
-            bool? saveSubFolder,
-            bool? copyMode,
-            bool? overwite,
-            bool? seqNumberAdd)
+            bool saveSubFolder,
+            bool copyMode,
+            bool overwite,
+            bool seqNumberAdd)
         {
-            var isOverWrite = overwite ?? false;
-
             // ファイル列挙
             foreach (var srcFilePath in EnumerateTargetFiles(srcDirPath, fileExtention))
             {
                 // 移動先ファイル名の生成
                 string dstFilePath = null;
-                if (saveSubFolder ?? false)
+                if (saveSubFolder)
                 {
                     // サブフォルダを維持する場合は構造を維持しつつ移動先ファイル名を生成する
                     dstFilePath = Path.Combine(dstDirAddDate, srcFilePath.Replace(srcDirPath, ""));
@@ -268,7 +270,7 @@ namespace RecMove
                 }
 
                 // 既にファイルが有る場合は連番をつけて重複しないファイル名を作成する
-                if (!isOverWrite && (seqNumberAdd ?? false) && File.Exists(dstFilePath))
+                if (!overwite && seqNumberAdd && File.Exists(dstFilePath))
                 {
                     var index = 1;
                     var seqDstFilePath = Path.Combine(Path.GetDirectoryName(dstFilePath), $"{Path.GetFileNameWithoutExtension(dstFilePath)}_{index:00}{Path.GetExtension(dstFilePath)}");
@@ -281,26 +283,23 @@ namespace RecMove
                 }
 
                 // 上書きしない設定なので既にファイルがある場合は次へ
-                if (!isOverWrite && File.Exists(dstFilePath))
+                if (!overwite && File.Exists(dstFilePath))
                 {
                     continue;
                 }
 
-                this.Dispatcher.Invoke((Action)(() =>
-                {
-                    Label_Status.Content = $"ファイルを{(copyMode ?? false ? "コピー中" : "移動中")}...{srcFilePath} -> {dstFilePath}";
-                }));
+                SetStatusLabel($"ファイルを{(copyMode ? "コピー中" : "移動中")}...{srcFilePath} -> {dstFilePath}");
 
                 // ファイルの移動・コピー
-                if (copyMode ?? false)
+                if (copyMode)
                 {
                     // ファイルのコピー
-                    File.Copy(srcFilePath, dstFilePath, isOverWrite);
+                    File.Copy(srcFilePath, dstFilePath, overwite);
                 }
                 else
                 {
                     // ファイルの移動
-                    File.Move(srcFilePath, dstFilePath, isOverWrite);
+                    File.Move(srcFilePath, dstFilePath, overwite);
                 }
             }
         }
@@ -337,16 +336,65 @@ namespace RecMove
             return Task.Factory.StartNew(() =>
             {
                 // リソースからサウンド読み出し
-                using (var soundStream = Properties.Resources.nc122233)
-                {
-                    // 同期再生
-                    using (var player = new SoundPlayer(soundStream))
-                    {
-                        player.PlaySync();
-                    }
-                }
+                using var soundStream = Properties.Resources.nc122233;
+                // 同期的にサウンドを再生する
+                using var player = new SoundPlayer(soundStream);
+                player.PlaySync();
             });
         }
 
+        /// <summary>
+        /// ステータスラベルを設定する
+        /// </summary>
+        /// <param name="message"></param>
+        private void SetStatusLabel(string message)
+        {
+            Dispatcher.Invoke((Action)(() =>
+            {
+                Label_Status.Content = message;
+            }));
+        }
+
+        /// <summary>
+        /// Youtubeのアップロードダイアログを開く
+        /// </summary>
+        /// <returns></returns>
+        private Task ShowYoutubeDialog()
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                Dispatcher.Invoke((Action)(() =>
+                {
+                    var win = new Youtube(EnumerateTargetFiles(TextBox_SrcDir.Text, TextBox_FileExtention.Text));
+                    win.ShowDialog();
+                }));
+            });
+        }
+
+        /// <summary>
+        /// 今すぐ実行する押下時
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.Check_YoutubeUpload.IsChecked ?? false)
+            {
+                // Youtubeダイアログを開く
+                ShowYoutubeDialog();
+            }
+            else
+            {
+                // ファイル移動する
+                MoveFileAsync(TextBox_SrcDir.Text,
+                    TextBox_DstDir.Text,
+                    TextBox_FileExtention.Text,
+                    Check_CreateYmdFolder.IsChecked ?? false,
+                    Check_SaveSubFolder.IsChecked ?? false,
+                    Check_CopyMode.IsChecked ?? false,
+                    Check_Overwite.IsChecked ?? false,
+                    Check_SeqNumberAdd.IsChecked ?? false);
+            }
+        }
     }
 }
