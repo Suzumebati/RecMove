@@ -188,7 +188,7 @@
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem Click="MenuItem_VisibleClick" Header="表示/隠す" />
-                    <MenuItem Click="MenuItem_CLoseClick" Header="終了" />
+                    <MenuItem Click="MenuItem_CloseClick" Header="終了" />
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>

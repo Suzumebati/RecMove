@@ -1,12 +1,12 @@
 ﻿<Window
-    x:Class="RecMove.Youtube"
+    x:Class="RecMove.YoutubeUploadWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:RecMove"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:p="clr-namespace:RecMove.Properties"
-    Title="Youtube"
+    Title="Youtubeアップロード"
     Width="800"
     Height="450"
     mc:Ignorable="d">
@@ -18,7 +18,7 @@
             <RowDefinition Height="30" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100" />
+            <ColumnDefinition Width="110" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <DataGrid

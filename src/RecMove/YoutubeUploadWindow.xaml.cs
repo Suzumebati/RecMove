@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Media;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -18,9 +20,9 @@ using System.Windows.Shapes;
 namespace RecMove
 {
     /// <summary>
-    /// Youtube.xaml の相互作用ロジック
+    /// YoutubeUploadWindow.xaml の相互作用ロジック
     /// </summary>
-    public partial class Youtube : Window
+    public partial class YoutubeUploadWindow : Window
     {
         /// <summary>
         /// アップローダークラス
@@ -35,13 +37,13 @@ namespace RecMove
         /// <summary>
         /// API用のストリーム
         /// </summary>
-        private Stream apiStream = new MemoryStream();
+        private Stream apiKeyStream = new MemoryStream();
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
         /// <param name="srcFiles"></param>
-        public Youtube(IEnumerable<string> srcFiles)
+        public YoutubeUploadWindow(IEnumerable<string> srcFiles)
         {
             InitializeComponent();
 
@@ -77,8 +79,8 @@ namespace RecMove
 
             Label_Status.Content = "アップロード開始しました。";
 
-            LoadApiKey(apiStream);
-            uploader = new YoutubeUploader(uploadItemList,TextBox_Title.Text, apiStream);
+            LoadApiKey(apiKeyStream);
+            uploader = new YoutubeUploader(uploadItemList,TextBox_Title.Text, apiKeyStream);
             uploader.YoutubeUploadStatusChanged += YoutubeUploadStatusChanged;
             
             await uploader.Run();
@@ -98,6 +100,15 @@ namespace RecMove
         {
             Dispatcher.Invoke((Action)(() =>
             {
+                // すべてのファイルアップロードを終えたらサウンドを流して完了状態にする
+                if (status.IsAllComplete)
+                {
+                    UploadProgress.Maximum = 100;
+                    UploadProgress.Value = 100;
+                    PlayCompleteSoundAsync();
+                    return;
+                }
+
                 UploadProgress.Maximum = status.FileAllByte;
                 UploadProgress.Value = status.FileCurrentUploadedByte + status.FileUploadedByte;
                 switch (status.Status)
@@ -138,11 +149,28 @@ namespace RecMove
             var selectItem = MovieList.SelectedItem as YoutubeUploadItem;
             if (selectItem != null)
             {
+                // 関連付けで該当ファイルを実行する
                 var process = new Process();
                 process.StartInfo.FileName = selectItem.FilePath;
                 process.StartInfo.UseShellExecute = true;
                 process.Start();
             }
+        }
+
+        /// <summary>
+        /// 移動完了サウンドの再生
+        /// </summary>
+        /// <returns></returns>
+        private Task PlayCompleteSoundAsync()
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                // リソースからサウンド読み出し
+                using var soundStream = Properties.Resources.nc122233;
+                // 同期的にサウンドを再生する
+                using var player = new SoundPlayer(soundStream);
+                player.PlaySync();
+            });
         }
     }
 }

@@ -43,11 +43,11 @@ namespace RecMove
         /// <param name="e"></param>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // ウインドウプロックの登録
+            // ウインドウプロシージャの登録
             HwndSource source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
             source.AddHook(new HwndSourceHook(WndProc));
 
-            // シェル通知の登録
+            // シェル通知の登録する
             var helper = new WindowInteropHelper(this);
             notifyer.RegisterChangeNotify(helper.Handle, ShNotifyManager.CSIDL.CSIDL_DESKTOP, true);
         }
@@ -101,7 +101,7 @@ namespace RecMove
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MenuItem_CLoseClick(object sender, RoutedEventArgs e)
+        private void MenuItem_CloseClick(object sender, RoutedEventArgs e)
         {
             Close();
         }
@@ -168,35 +168,41 @@ namespace RecMove
         }
 
         /// <summary>
-        /// ファイル移動
+        /// ファイルの移動
         /// </summary>
         /// <param name="srcDirPath"></param>
         /// <param name="dstDirPath"></param>
+        /// <param name="fileExtention"></param>
+        /// <param name="isAddingYmdDir"></param>
+        /// <param name="isSavingSubDir"></param>
+        /// <param name="isCopyMode"></param>
+        /// <param name="isOverwite"></param>
+        /// <param name="isAddingFileSeqNumber"></param>
         /// <returns></returns>
         private Task MoveFileAsync(
             string srcDirPath,
             string dstDirPath,
             string fileExtention,
-            bool createYmdFolder,
-            bool saveSubFolder,
-            bool copyMode,
-            bool overwite,
-            bool seqNumberAdd)
+            bool isAddingYmdDir,
+            bool isSavingSubDir,
+            bool isCopyMode,
+            bool isOverwite,
+            bool isAddingFileSeqNumber)
         {
             return Task.Factory.StartNew(() =>
             {
                 // 移動先フォルダの作成
-                var dstDirAddPath = CreateDstFolder(dstDirPath, createYmdFolder);
-                if (dstDirAddPath == null)
+                var createDstDir = CreateDstFolder(dstDirPath, isAddingYmdDir);
+                if (createDstDir == null)
                 {
-                    SetStatusLabel($"移動先フォルダが作成できませんでした。移動先->{dstDirPath}");
+                    SetStatusLabel($"{(isCopyMode ? "コピー先" : "移動先")}フォルダが作成できませんでした。移動先->{dstDirPath}");
                     return;
                 }
 
                 // ファイルを移動する
-                MoveFiles(srcDirPath, dstDirAddPath, fileExtention, saveSubFolder, copyMode, overwite, seqNumberAdd);
+                MoveFiles(srcDirPath, createDstDir, fileExtention, isSavingSubDir, isCopyMode, isOverwite, isAddingFileSeqNumber);
 
-                SetStatusLabel($"ファイルの移動完了 {srcDirPath} -> {dstDirAddPath}");
+                SetStatusLabel($"ファイルの{(isCopyMode ? "コピー" : "移動")}完了 {srcDirPath} -> {createDstDir}");
 
                 // 移動完了時のサウンド再生
                 PlayCompleteSoundAsync();
@@ -207,44 +213,39 @@ namespace RecMove
         /// 移動先のフォルダ作成
         /// </summary>
         /// <param name="dstDirPath"></param>
-        /// <param name="createYmdFolder"></param>
+        /// <param name="isAddingYmdDir"></param>
         /// <returns></returns>
-        private string CreateDstFolder(string dstDirPath, bool? createYmdFolder)
+        private string CreateDstFolder(string dstDirPath, bool isAddingYmdDir)
         {
-            if (!(createYmdFolder ?? false))
-            {
-                if (!Directory.Exists(dstDirPath))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(dstDirPath);
-                    }
-                    catch (IOException)
-                    {
-                        return null;
-                    }
-                }
-                return dstDirPath;
-            }
-
-            try
+            string createDstDir;
+            if (isAddingYmdDir)
             {
                 var index = 0;
-                var dstDirAddPath = Path.Combine(dstDirPath, DateTime.Now.ToString("yyyyMMdd"));
+                createDstDir = Path.Combine(dstDirPath, DateTime.Now.ToString("yyyyMMdd"));
                 // 既に現在日付でフォルダが存在する場合は連番で探す
-                while (index < 100 && Directory.Exists(dstDirAddPath))
+                while (index < 100 && Directory.Exists(createDstDir))
                 {
                     index++;
-                    dstDirAddPath = Path.Combine(dstDirPath, $"{DateTime.Now.ToString("yyyyMMdd")}_{index:00}");
+                    createDstDir = Path.Combine(dstDirPath, $"{DateTime.Now.ToString("yyyyMMdd")}_{index:00}");
                 }
-                Directory.CreateDirectory(dstDirAddPath);
-
-                return dstDirAddPath;
             }
-            catch (IOException)
+            else
             {
-                return null;
+                createDstDir = dstDirPath;
             }
+
+            if (!Directory.Exists(createDstDir))
+            {
+                try
+                {
+                    Directory.CreateDirectory(createDstDir);
+                }
+                catch (IOException)
+                {
+                    return null;
+                }
+            }
+            return createDstDir;
         }
 
         /// <summary>
@@ -253,25 +254,25 @@ namespace RecMove
         /// <param name="srcDirPath"></param>
         /// <param name="dstDirAddDate"></param>
         /// <param name="fileExtention"></param>
-        /// <param name="saveSubFolder"></param>
-        /// <param name="copyMode"></param>
-        /// <param name="overwite"></param>
-        /// <param name="seqNumberAdd"></param>
+        /// <param name="isSavingSubDir"></param>
+        /// <param name="isCopyMode"></param>
+        /// <param name="isOverwite"></param>
+        /// <param name="isAddingFileSeqNumber"></param>
         private void MoveFiles(
             string srcDirPath,
             string dstDirAddDate,
             string fileExtention,
-            bool saveSubFolder,
-            bool copyMode,
-            bool overwite,
-            bool seqNumberAdd)
+            bool isSavingSubDir,
+            bool isCopyMode,
+            bool isOverwite,
+            bool isAddingFileSeqNumber)
         {
             // ファイル列挙
             foreach (var srcFilePath in EnumerateTargetFiles(srcDirPath, fileExtention))
             {
                 // 移動先ファイル名の生成
-                string dstFilePath = null;
-                if (saveSubFolder)
+                string dstFilePath;
+                if (isSavingSubDir)
                 {
                     // サブフォルダを維持する場合は構造を維持しつつ移動先ファイル名を生成する
                     dstFilePath = Path.Combine(dstDirAddDate, srcFilePath.Replace(srcDirPath, ""));
@@ -286,7 +287,7 @@ namespace RecMove
                 }
 
                 // 既にファイルが有る場合は連番をつけて重複しないファイル名を作成する
-                if (!overwite && seqNumberAdd && File.Exists(dstFilePath))
+                if (!isOverwite && isAddingFileSeqNumber && File.Exists(dstFilePath))
                 {
                     var index = 1;
                     var seqDstFilePath = Path.Combine(Path.GetDirectoryName(dstFilePath), $"{Path.GetFileNameWithoutExtension(dstFilePath)}_{index:00}{Path.GetExtension(dstFilePath)}");
@@ -299,23 +300,23 @@ namespace RecMove
                 }
 
                 // 上書きしない設定なので既にファイルがある場合は次へ
-                if (!overwite && File.Exists(dstFilePath))
+                if (!isOverwite && File.Exists(dstFilePath))
                 {
                     continue;
                 }
 
-                SetStatusLabel($"ファイルを{(copyMode ? "コピー中" : "移動中")}...{srcFilePath} -> {dstFilePath}");
+                SetStatusLabel($"ファイルを{(isCopyMode ? "コピー中" : "移動中")}...{srcFilePath} -> {dstFilePath}");
 
                 // ファイルの移動・コピー
-                if (copyMode)
+                if (isCopyMode)
                 {
                     // ファイルのコピー
-                    File.Copy(srcFilePath, dstFilePath, overwite);
+                    File.Copy(srcFilePath, dstFilePath, isOverwite);
                 }
                 else
                 {
                     // ファイルの移動
-                    File.Move(srcFilePath, dstFilePath, overwite);
+                    File.Move(srcFilePath, dstFilePath, isOverwite);
                 }
             }
         }
@@ -381,7 +382,7 @@ namespace RecMove
             {
                 Dispatcher.Invoke((Action)(() =>
                 {
-                    var win = new Youtube(EnumerateTargetFiles(TextBox_SrcDir.Text, TextBox_FileExtention.Text));
+                    var win = new YoutubeUploadWindow(EnumerateTargetFiles(TextBox_SrcDir.Text, TextBox_FileExtention.Text));
                     win.ShowDialog();
                 }));
             });

@@ -39,18 +39,18 @@ namespace RecMove
         /// <summary>
         /// APIキー用のストリーム
         /// </summary>
-        private readonly Stream apiStream;
+        private readonly Stream apiKeyStream;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
         /// <param name="uploadItems"></param>
         /// <param name="uploadTitleFormat"></param>
-        public YoutubeUploader(List<YoutubeUploadItem> uploadItems,string uploadTitleFormat,Stream apiStream)
+        public YoutubeUploader(List<YoutubeUploadItem> uploadItems,string uploadTitleFormat,Stream apiKeyStream)
         {
             this.uploadItems = uploadItems;
             this.uploadTitleFormat = uploadTitleFormat;
-            this.apiStream = apiStream;
+            this.apiKeyStream = apiKeyStream;
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace RecMove
         {
             // Oauthする
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(apiStream).Secrets,
+                    GoogleClientSecrets.Load(apiKeyStream).Secrets,
                     // This OAuth 2.0 access scope allows an application to upload files to the
                     // authenticated user's YouTube channel, but doesn't allow other types of access.
                     new[] { YouTubeService.Scope.YoutubeUpload },
@@ -104,6 +104,10 @@ namespace RecMove
                 // ステータス変更イベントを発行
                 YoutubeUploadStatusChanged?.Invoke(status.Clone());
             }
+
+            // すべてアップロード完了したイベントを発行する
+            status.IsAllComplete = true;
+            YoutubeUploadStatusChanged?.Invoke(status.Clone());
             youtubeService.Dispose();
         }
 

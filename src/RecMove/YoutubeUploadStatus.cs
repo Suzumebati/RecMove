@@ -48,6 +48,11 @@ namespace RecMove
         public UploadStatus Status { get; set; }
 
         /// <summary>
+        /// 全体の完了フラグ
+        /// </summary>
+        public bool IsAllComplete { get; set; }
+
+        /// <summary>
         /// オブジェクトクローン
         /// </summary>
         /// <returns></returns>
