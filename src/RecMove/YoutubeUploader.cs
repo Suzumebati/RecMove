@@ -92,13 +92,14 @@ namespace RecMove
                 if (!item.IsUpload) continue;
                 index++;
 
+                status.FileName = Path.GetFileName(item.FilePath);
+                status.FileIndex = index;
+
                 // 非同期アップロード’（１ファイル）
                 await UploadFile(youtubeService, item, index);
 
-                this.status.FileName = Path.GetFileName(item.FilePath);
-                this.status.FileIndex = index;
-                this.status.FileCurrentUploadedByte = 0;
-                this.status.FileUploadedByte += item.FileSize;
+                status.FileCurrentUploadedByte = 0;
+                status.FileUploadedByte += item.FileSize;
 
                 // ステータス変更イベントを発行
                 YoutubeUploadStatusChanged?.Invoke(status.Clone());
@@ -144,6 +145,7 @@ namespace RecMove
         /// <param name="progress"></param>
         void VideosInsertRequest_ProgressChanged(Google.Apis.Upload.IUploadProgress progress)
         {
+            status.Status = progress.Status;
             switch (progress.Status)
             {
                 case UploadStatus.Uploading:

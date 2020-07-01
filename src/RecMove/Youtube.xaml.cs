@@ -3,6 +3,7 @@ using Google.Apis.YouTube.v3.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -61,7 +62,7 @@ namespace RecMove
             }
 
             // グリッドにバインド
-            MoveList.ItemsSource = data;
+            MovieList.ItemsSource = data;
         }
 
         /// <summary>
@@ -72,7 +73,9 @@ namespace RecMove
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
             Button_Upload.IsEnabled = false;
-            MoveList.IsReadOnly = true;
+            MovieList.IsReadOnly = true;
+
+            Label_Status.Content = "アップロード開始しました。";
 
             LoadApiKey(apiStream);
             uploader = new YoutubeUploader(uploadItemList,TextBox_Title.Text, apiStream);
@@ -81,8 +84,10 @@ namespace RecMove
             await uploader.Run();
             uploader = null;
 
+            Label_Status.Content = "アップロード完了しました。";
+
             Button_Upload.IsEnabled = true;
-            MoveList.IsReadOnly = false;
+            MovieList.IsReadOnly = false;
         }
 
         /// <summary>
@@ -95,12 +100,25 @@ namespace RecMove
             {
                 UploadProgress.Maximum = status.FileAllByte;
                 UploadProgress.Value = status.FileCurrentUploadedByte + status.FileUploadedByte;
-                Label_Status.Content = $"[{status.FileName}]をアップロード中({status.FileIndex}/{status.FileCount})";
+                switch (status.Status)
+                {
+                    case UploadStatus.Uploading:
+                        Label_Status.Content = $"[{status.FileName}]をアップロード中です。({status.FileIndex}/{status.FileCount})";
+                        break;
+
+                    case UploadStatus.Failed:
+                        Label_Status.Content = $"[{status.FileName}]のアップロードに失敗しました。({status.FileIndex}/{status.FileCount})";
+                        break;
+
+                    case UploadStatus.Completed:
+                        Label_Status.Content = $"[{status.FileName}]をアップロード完了しました。({status.FileIndex}/{status.FileCount})";
+                        break;
+                }
             }));
         }
 
         /// <summary>
-        /// 
+        /// APIキーのロード
         /// </summary>
         /// <returns></returns>
         private void LoadApiKey(Stream outStream)
@@ -108,6 +126,23 @@ namespace RecMove
             using var apiKeySt = new MemoryStream(Properties.Resources.api);
             FileEncryptor.Decrypt(apiKeySt, outStream, "n1xDVuFqSN");
             outStream.Seek(0, SeekOrigin.Begin);
+        }
+
+        /// <summary>
+        /// 動画のプレビュー
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void PreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectItem = MovieList.SelectedItem as YoutubeUploadItem;
+            if (selectItem != null)
+            {
+                var process = new Process();
+                process.StartInfo.FileName = selectItem.FilePath;
+                process.StartInfo.UseShellExecute = true;
+                process.Start();
+            }
         }
     }
 }

@@ -107,7 +107,7 @@ namespace RecMove
         }
 
         /// <summary>
-        /// ウインドウプロック
+        /// ウインドウプロシージャ実行（ウインドウメッセージの受信）
         /// </summary>
         /// <param name="hwnd"></param>
         /// <param name="msg"></param>
@@ -126,29 +126,45 @@ namespace RecMove
                         if (TextBox_SrcDir.Text.StartsWith(mountedPath))
                         {
                             Label_Status.Content = $"指定ドライブのマウントを確認しました。Path={TextBox_SrcDir.Text}";
-                            if (this.Check_YoutubeUpload.IsChecked ?? false)
-                            {
-                                // Youtubeダイアログを開く
-                                ShowYoutubeDialog();
-                            }
-                            else
-                            {
-                                // ファイル移動する
-                                MoveFileAsync(TextBox_SrcDir.Text,
-                                    TextBox_DstDir.Text,
-                                    TextBox_FileExtention.Text,
-                                    Check_CreateYmdFolder.IsChecked ?? false,
-                                    Check_SaveSubFolder.IsChecked ?? false,
-                                    Check_CopyMode.IsChecked ?? false,
-                                    Check_Overwite.IsChecked ?? false,
-                                    Check_SeqNumberAdd.IsChecked ?? false);
-                            }
+                            Button_Click(null,null);
                         }
                     }
                     break;
             }
 
             return IntPtr.Zero;
+        }
+
+        /// <summary>
+        /// 今すぐ実行する押下時
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Directory.Exists(TextBox_SrcDir.Text))
+            {
+                Label_Status.Content = $"コピー元フォルダが存在しません。Path={TextBox_SrcDir.Text}";
+                return;
+            }
+
+            if (Check_YoutubeUpload.IsChecked ?? false)
+            {
+                // Youtubeダイアログを開く
+                ShowYoutubeDialog();
+            }
+            else
+            {
+                // ファイル移動する
+                MoveFileAsync(TextBox_SrcDir.Text,
+                    TextBox_DstDir.Text,
+                    TextBox_FileExtention.Text,
+                    Check_CreateYmdFolder.IsChecked ?? false,
+                    Check_SaveSubFolder.IsChecked ?? false,
+                    Check_CopyMode.IsChecked ?? false,
+                    Check_Overwite.IsChecked ?? false,
+                    Check_SeqNumberAdd.IsChecked ?? false);
+            }
         }
 
         /// <summary>
@@ -173,7 +189,7 @@ namespace RecMove
                 var dstDirAddPath = CreateDstFolder(dstDirPath, createYmdFolder);
                 if (dstDirAddPath == null)
                 {
-                    SetStatusLabel($"移動先フォルダが作成できませんでした。移動先->{dstDirAddPath}");
+                    SetStatusLabel($"移動先フォルダが作成できませんでした。移動先->{dstDirPath}");
                     return;
                 }
 
@@ -369,32 +385,6 @@ namespace RecMove
                     win.ShowDialog();
                 }));
             });
-        }
-
-        /// <summary>
-        /// 今すぐ実行する押下時
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            if (this.Check_YoutubeUpload.IsChecked ?? false)
-            {
-                // Youtubeダイアログを開く
-                ShowYoutubeDialog();
-            }
-            else
-            {
-                // ファイル移動する
-                MoveFileAsync(TextBox_SrcDir.Text,
-                    TextBox_DstDir.Text,
-                    TextBox_FileExtention.Text,
-                    Check_CreateYmdFolder.IsChecked ?? false,
-                    Check_SaveSubFolder.IsChecked ?? false,
-                    Check_CopyMode.IsChecked ?? false,
-                    Check_Overwite.IsChecked ?? false,
-                    Check_SeqNumberAdd.IsChecked ?? false);
-            }
         }
     }
 }

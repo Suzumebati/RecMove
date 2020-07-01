@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Google.Apis.Upload;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -42,6 +43,11 @@ namespace RecMove
         public long FileAllByte { get; set; }
 
         /// <summary>
+        /// アップロードステータス
+        /// </summary>
+        public UploadStatus Status { get; set; }
+
+        /// <summary>
         /// オブジェクトクローン
         /// </summary>
         /// <returns></returns>
@@ -56,6 +62,7 @@ namespace RecMove
                 obj.FileCurrentUploadedByte = this.FileCurrentUploadedByte;
                 obj.FileUploadedByte = this.FileUploadedByte;
                 obj.FileAllByte = this.FileAllByte;
+                obj.Status = this.Status;
                 return obj;
             }
         }

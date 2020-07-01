@@ -22,7 +22,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <DataGrid
-            Name="MoveList"
+            Name="MovieList"
             Grid.Row="0"
             Grid.ColumnSpan="2"
             AutoGenerateColumns="False"
@@ -38,6 +38,13 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
+                <DataGridTemplateColumn Header="プレビュー">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Click="PreviewButton_Click" Content="表示" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
         <Label
