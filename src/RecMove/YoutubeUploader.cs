@@ -70,7 +70,7 @@ namespace RecMove
                 );
 
             // YoutubeAPIのサービス作成
-            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            using var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = Assembly.GetExecutingAssembly().GetName().Name
@@ -108,7 +108,6 @@ namespace RecMove
             // すべてアップロード完了したイベントを発行する
             status.IsAllComplete = true;
             YoutubeUploadStatusChanged?.Invoke(status.Clone());
-            youtubeService.Dispose();
         }
 
         /// <summary>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Media;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -383,7 +384,8 @@ namespace RecMove
                 Dispatcher.Invoke((Action)(() =>
                 {
                     var win = new YoutubeUploadWindow(EnumerateTargetFiles(TextBox_SrcDir.Text, TextBox_FileExtention.Text));
-                    win.ShowDialog();
+                    win.Show();
+                    win.Activate();
                 }));
             });
         }
