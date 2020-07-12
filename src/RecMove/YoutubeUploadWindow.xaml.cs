@@ -117,7 +117,7 @@ namespace RecMove
                     return;
                 }
 
-                var percent = Convert.ToInt32((status.FileCurrentUploadedByte + status.FileUploadedByte) / status.FileAllByte);
+                var percent = Convert.ToInt32(((status.FileCurrentUploadedByte + status.FileUploadedByte) / (double)status.FileAllByte) * 100);
                 UploadProgress.Maximum = 100;
                 UploadProgress.Value = percent;
                 TaskbarManager.Instance.SetProgressValue(percent, 100);

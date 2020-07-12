@@ -29,9 +29,18 @@
             CanUserAddRows="False">
             <DataGrid.Columns>
                 <DataGridCheckBoxColumn Binding="{Binding IsUpload}" Header="アップロード" />
-                <DataGridTextColumn Binding="{Binding FilePath}" Header="ファイルパス" />
-                <DataGridTextColumn Binding="{Binding FileUpdateTime, StringFormat=yyyy/MM/dd HH:mm:ss}" Header="ファイル更新時間" />
-                <DataGridTextColumn Binding="{Binding FileSizeMByte, StringFormat=N0}" Header="ファイルサイズ(MByte)">
+                <DataGridTextColumn
+                    Binding="{Binding FilePath}"
+                    Header="ファイルパス"
+                    IsReadOnly="True" />
+                <DataGridTextColumn
+                    Binding="{Binding FileUpdateTime, StringFormat=yyyy/MM/dd HH:mm:ss}"
+                    Header="ファイル更新時間"
+                    IsReadOnly="True" />
+                <DataGridTextColumn
+                    Binding="{Binding FileSizeMByte, StringFormat=N0}"
+                    Header="ファイルサイズ(MByte)"
+                    IsReadOnly="True">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="TextAlignment" Value="Right" />
