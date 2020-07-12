@@ -1,5 +1,6 @@
 ﻿using Google.Apis.Upload;
 using Google.Apis.YouTube.v3.Data;
+using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -82,9 +83,16 @@ namespace RecMove
             LoadApiKey(apiKeyStream);
             uploader = new YoutubeUploader(uploadItemList,TextBox_Title.Text, apiKeyStream);
             uploader.YoutubeUploadStatusChanged += YoutubeUploadStatusChanged;
-            
+
+            TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Normal);
+
+            // アップロード実行
             await uploader.Run();
+
+            uploader.YoutubeUploadStatusChanged -= YoutubeUploadStatusChanged;
             uploader = null;
+
+            TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.NoProgress);
 
             Label_Status.Content = "アップロード完了しました。";
 
@@ -105,12 +113,15 @@ namespace RecMove
                 {
                     UploadProgress.Maximum = 100;
                     UploadProgress.Value = 100;
-                    PlayCompleteSoundAsync();
+                    Utility.PlayCompleteSoundAsync();
                     return;
                 }
 
-                UploadProgress.Maximum = status.FileAllByte;
-                UploadProgress.Value = status.FileCurrentUploadedByte + status.FileUploadedByte;
+                var percent = Convert.ToInt32((status.FileCurrentUploadedByte + status.FileUploadedByte) / status.FileAllByte);
+                UploadProgress.Maximum = 100;
+                UploadProgress.Value = percent;
+                TaskbarManager.Instance.SetProgressValue(percent, 100);
+
                 switch (status.Status)
                 {
                     case UploadStatus.Uploading:
@@ -149,28 +160,8 @@ namespace RecMove
             var selectItem = MovieList.SelectedItem as YoutubeUploadItem;
             if (selectItem != null)
             {
-                // 関連付けで該当ファイルを実行する
-                var process = new Process();
-                process.StartInfo.FileName = selectItem.FilePath;
-                process.StartInfo.UseShellExecute = true;
-                process.Start();
+                Utility.ShellExecute(selectItem.FilePath);
             }
-        }
-
-        /// <summary>
-        /// 移動完了サウンドの再生
-        /// </summary>
-        /// <returns></returns>
-        private Task PlayCompleteSoundAsync()
-        {
-            return Task.Factory.StartNew(() =>
-            {
-                // リソースからサウンド読み出し
-                using var soundStream = Properties.Resources.nc122233;
-                // 同期的にサウンドを再生する
-                using var player = new SoundPlayer(soundStream);
-                player.PlaySync();
-            });
         }
     }
 }

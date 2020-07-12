@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,6 +37,8 @@ namespace RecMove
         {
             InitializeComponent();
         }
+
+        #region Windowイベント
 
         /// <summary>
         /// ウインドウロードイベント
@@ -79,6 +82,10 @@ namespace RecMove
             }
         }
 
+        #endregion
+
+        #region タスクトレイイベント
+
         /// <summary>
         /// タスクトレイの表示・非表示クリック
         /// </summary>
@@ -107,33 +114,48 @@ namespace RecMove
             Close();
         }
 
-        /// <summary>
-        /// ウインドウプロシージャ実行（ウインドウメッセージの受信）
-        /// </summary>
-        /// <param name="hwnd"></param>
-        /// <param name="msg"></param>
-        /// <param name="wParam"></param>
-        /// <param name="lParam"></param>
-        /// <param name="handled"></param>
-        /// <returns></returns>
-        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            switch ((ShNotifyManager.WM)msg)
-            {
-                case ShNotifyManager.WM.WM_SHNOTIFY:
-                    if (notifyer.IsDriveMount(lParam))
-                    {
-                        var mountedPath = notifyer.GetDrivePath(wParam);
-                        if (TextBox_SrcDir.Text.StartsWith(mountedPath))
-                        {
-                            Label_Status.Content = $"指定ドライブのマウントを確認しました。Path={TextBox_SrcDir.Text}";
-                            Button_Click(null,null);
-                        }
-                    }
-                    break;
-            }
+        #endregion
 
-            return IntPtr.Zero;
+        #region ボタンイベント
+
+        /// <summary>
+        /// コピー元フォルダ選択ボタンクリック
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SrcDir_ChoiceClick(object sender, RoutedEventArgs e)
+        {
+            using var dlg = new CommonOpenFileDialog
+            {
+                IsFolderPicker = true,
+                Title = "監視ドライブ(フォルダ)を選択してください",
+                InitialDirectory = TextBox_SrcDir.Text
+            };
+
+            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                TextBox_SrcDir.Text = dlg.FileName;
+            }
+        }
+
+        /// <summary>
+        /// コピー先フォルダ選択ボタンクリック
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DstDir_ChoiceClick(object sender, RoutedEventArgs e)
+        {
+            using var dlg = new CommonOpenFileDialog
+            {
+                IsFolderPicker = true,
+                Title = "コピー先フォルダを選択してください",
+                InitialDirectory = TextBox_DstDir.Text
+            };
+
+            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                TextBox_DstDir.Text = dlg.FileName;
+            }
         }
 
         /// <summary>
@@ -141,7 +163,7 @@ namespace RecMove
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void ExecuteNowButton_Click(object sender, RoutedEventArgs e)
         {
             if (!Directory.Exists(TextBox_SrcDir.Text))
             {
@@ -166,6 +188,76 @@ namespace RecMove
                     Check_Overwite.IsChecked ?? false,
                     Check_SeqNumberAdd.IsChecked ?? false);
             }
+        }
+
+        /// <summary>
+        /// Youtubeアップロードウインドウを開く
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void YotubeUploadButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Youtubeダイアログを開く
+            ShowYoutubeDialog();
+        }
+
+        /// <summary>
+        /// 監視フォルダを開く
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OpenSrcDirButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Directory.Exists(TextBox_SrcDir.Text))
+            {
+                Utility.ShellExecute(TextBox_SrcDir.Text);
+            }
+        }
+
+        /// <summary>
+        /// コピー先フォルダを開く
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OpenDstDirButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Directory.Exists(TextBox_DstDir.Text))
+            {
+                Utility.ShellExecute(TextBox_DstDir.Text);
+            }
+        }
+
+        #endregion
+
+        #region 処理関数
+
+        /// <summary>
+        /// ウインドウプロシージャ実行（ウインドウメッセージの受信）
+        /// </summary>
+        /// <param name="hwnd"></param>
+        /// <param name="msg"></param>
+        /// <param name="wParam"></param>
+        /// <param name="lParam"></param>
+        /// <param name="handled"></param>
+        /// <returns></returns>
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            switch ((ShNotifyManager.WM)msg)
+            {
+                case ShNotifyManager.WM.WM_SHNOTIFY:
+                    if (notifyer.IsDriveMount(lParam))
+                    {
+                        var mountedPath = notifyer.GetDrivePath(wParam);
+                        if (TextBox_SrcDir.Text.StartsWith(mountedPath))
+                        {
+                            Label_Status.Content = $"指定ドライブのマウントを確認しました。Path={TextBox_SrcDir.Text}";
+                            ExecuteNowButton_Click(null, null);
+                        }
+                    }
+                    break;
+            }
+
+            return IntPtr.Zero;
         }
 
         /// <summary>
@@ -206,7 +298,7 @@ namespace RecMove
                 SetStatusLabel($"ファイルの{(isCopyMode ? "コピー" : "移動")}完了 {srcDirPath} -> {createDstDir}");
 
                 // 移動完了時のサウンド再生
-                PlayCompleteSoundAsync();
+                Utility.PlayCompleteSoundAsync();
             });
         }
 
@@ -346,22 +438,6 @@ namespace RecMove
         }
 
         /// <summary>
-        /// 移動完了サウンドの再生
-        /// </summary>
-        /// <returns></returns>
-        private Task PlayCompleteSoundAsync()
-        {
-            return Task.Factory.StartNew(() =>
-            {
-                // リソースからサウンド読み出し
-                using var soundStream = Properties.Resources.nc122233;
-                // 同期的にサウンドを再生する
-                using var player = new SoundPlayer(soundStream);
-                player.PlaySync();
-            });
-        }
-
-        /// <summary>
         /// ステータスラベルを設定する
         /// </summary>
         /// <param name="message"></param>
@@ -389,5 +465,8 @@ namespace RecMove
                 }));
             });
         }
+
+        #endregion
+
     }
 }

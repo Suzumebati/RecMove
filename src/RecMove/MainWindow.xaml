@@ -18,6 +18,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" />
             <ColumnDefinition Width="8*" />
+            <ColumnDefinition Width="30" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="2*" />
@@ -47,6 +48,12 @@
             VerticalContentAlignment="Center"
             Text="{Binding Source={x:Static p:Settings.Default}, Path=TextBox_SrcDir, Mode=TwoWay}"
             TextWrapping="Wrap" />
+        <Button
+            Grid.Row="0"
+            Grid.Column="2"
+            Margin="0,2,0,2"
+            Click="SrcDir_ChoiceClick"
+            Content="..." />
 
         <Label
             Grid.Row="1"
@@ -62,6 +69,12 @@
             VerticalContentAlignment="Center"
             Text="{Binding Source={x:Static p:Settings.Default}, Path=TextBox_DstDir, Mode=TwoWay}"
             TextWrapping="Wrap" />
+        <Button
+            Grid.Row="1"
+            Grid.Column="2"
+            Margin="0,2,0,2"
+            Click="DstDir_ChoiceClick"
+            Content="..." />
 
         <Label
             Grid.Row="2"
@@ -88,6 +101,7 @@
             Name="Check_CreateYmdFolder"
             Grid.Row="3"
             Grid.Column="1"
+            Grid.ColumnSpan="2"
             Margin="10,0,10,0"
             VerticalContentAlignment="Center"
             Content="移動先に現在日付のフォルダを自動的に作成する"
@@ -103,6 +117,7 @@
             Name="Check_SaveSubFolder"
             Grid.Row="4"
             Grid.Column="1"
+            Grid.ColumnSpan="2"
             Margin="10,0,10,0"
             VerticalContentAlignment="Center"
             Content="元のフォルダ構造を維持する(チェックがついてない場合はファイルだけコピー)"
@@ -118,6 +133,7 @@
             Name="Check_CopyMode"
             Grid.Row="5"
             Grid.Column="1"
+            Grid.ColumnSpan="2"
             Margin="10,0,10,0"
             VerticalContentAlignment="Center"
             Content="ファイルは移動せずコピーする"
@@ -133,6 +149,7 @@
             Name="Check_Overwite"
             Grid.Row="6"
             Grid.Column="1"
+            Grid.ColumnSpan="2"
             Margin="10,0,10,0"
             VerticalContentAlignment="Center"
             Content="同名のファイルがあった場合は上書きする(連番指定より優先される)"
@@ -148,6 +165,7 @@
             Name="Check_SeqNumberAdd"
             Grid.Row="7"
             Grid.Column="1"
+            Grid.ColumnSpan="2"
             Margin="10,0,10,0"
             VerticalContentAlignment="Center"
             Content="同名のファイルがあった場合はファイル名に連番をつけて同名にならないようにする"
@@ -163,23 +181,50 @@
             Name="Check_YoutubeUpload"
             Grid.Row="8"
             Grid.Column="1"
+            Grid.ColumnSpan="2"
             Margin="10,0,10,0"
             VerticalContentAlignment="Center"
             Content="ファイルのコピーではなくYotutebeにアップロードする(アップロードウインドウが開きます)"
             IsChecked="{Binding Source={x:Static p:Settings.Default}, Path=Check_YoutubeUpload, Mode=TwoWay}" />
 
-        <Button
+        <Grid
             Grid.Row="9"
             Grid.Column="0"
-            Margin="2,0,2,2"
-            Click="Button_Click"
-            Content="今すぐ実行する" />
+            Grid.ColumnSpan="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.5*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+            <Button
+                Grid.Column="0"
+                Margin="5,0,5,0"
+                Click="ExecuteNowButton_Click"
+                Content="今すぐ実行する"
+                FontWeight="Bold" />
+            <Button
+                Grid.Column="1"
+                Margin="5,0,5,0"
+                Click="YotubeUploadButton_Click"
+                Content="Youtubeアップロードする" />
+            <Button
+                Grid.Column="2"
+                Margin="5,0,5,0"
+                Click="OpenSrcDirButton_Click"
+                Content="監視フォルダを開く" />
+            <Button
+                Grid.Column="3"
+                Margin="5,0,5,0"
+                Click="OpenDstDirButton_Click"
+                Content="移動先を開く" />
+        </Grid>
 
         <Label
             Name="Label_Status"
             Grid.Row="10"
             Grid.Column="0"
-            Grid.ColumnSpan="2"
+            Grid.ColumnSpan="3"
             Margin="10,0,10,0"
             VerticalContentAlignment="Center"
             Content="待機中" />
