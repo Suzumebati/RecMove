@@ -200,9 +200,8 @@
             <Button
                 Grid.Column="0"
                 Margin="5,0,5,0"
-                Click="ExecuteNowButton_Click"
-                Content="今すぐ実行する"
-                FontWeight="Bold" />
+                Click="ExecuteCopyButton_Click"
+                Content="ファイル移動(コピー)を実行する" />
             <Button
                 Grid.Column="1"
                 Margin="5,0,5,0"

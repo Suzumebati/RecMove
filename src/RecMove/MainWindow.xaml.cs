@@ -163,7 +163,7 @@ namespace RecMove
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ExecuteNowButton_Click(object sender, RoutedEventArgs e)
+        private void ExecuteCopyButton_Click(object sender, RoutedEventArgs e)
         {
             if (!Directory.Exists(TextBox_SrcDir.Text))
             {
@@ -171,23 +171,15 @@ namespace RecMove
                 return;
             }
 
-            if (Check_YoutubeUpload.IsChecked ?? false)
-            {
-                // Youtubeダイアログを開く
-                ShowYoutubeDialog();
-            }
-            else
-            {
-                // ファイル移動する
-                MoveFileAsync(TextBox_SrcDir.Text,
-                    TextBox_DstDir.Text,
-                    TextBox_FileExtention.Text,
-                    Check_CreateYmdFolder.IsChecked ?? false,
-                    Check_SaveSubFolder.IsChecked ?? false,
-                    Check_CopyMode.IsChecked ?? false,
-                    Check_Overwite.IsChecked ?? false,
-                    Check_SeqNumberAdd.IsChecked ?? false);
-            }
+            // ファイル移動する
+            MoveFileAsync(TextBox_SrcDir.Text,
+                TextBox_DstDir.Text,
+                TextBox_FileExtention.Text,
+                Check_CreateYmdFolder.IsChecked ?? false,
+                Check_SaveSubFolder.IsChecked ?? false,
+                Check_CopyMode.IsChecked ?? false,
+                Check_Overwite.IsChecked ?? false,
+                Check_SeqNumberAdd.IsChecked ?? false);
         }
 
         /// <summary>
@@ -197,8 +189,18 @@ namespace RecMove
         /// <param name="e"></param>
         private void YotubeUploadButton_Click(object sender, RoutedEventArgs e)
         {
-            // Youtubeダイアログを開く
-            ShowYoutubeDialog();
+            using var dlg = new CommonOpenFileDialog
+            {
+                IsFolderPicker = true,
+                Title = "Youtubeアップロードファイルが含まれるフォルダを選択してください",
+                InitialDirectory = TextBox_SrcDir.Text
+            };
+
+            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                // Youtubeダイアログを開く
+                ShowYoutubeDialog(dlg.FileName);
+            }
         }
 
         /// <summary>
@@ -251,13 +253,43 @@ namespace RecMove
                         if (TextBox_SrcDir.Text.StartsWith(mountedPath))
                         {
                             Label_Status.Content = $"指定ドライブのマウントを確認しました。Path={TextBox_SrcDir.Text}";
-                            ExecuteNowButton_Click(null, null);
+                            ExecuteMountCommand();
                         }
                     }
                     break;
             }
 
             return IntPtr.Zero;
+        }
+
+        /// <summary>
+        /// ドライブマウント時の処理を実行する
+        /// </summary>
+        private void ExecuteMountCommand()
+        {
+            if (!Directory.Exists(TextBox_SrcDir.Text))
+            {
+                Label_Status.Content = $"コピー元フォルダが存在しません。Path={TextBox_SrcDir.Text}";
+                return;
+            }
+
+            if (Check_YoutubeUpload.IsChecked ?? false)
+            {
+                // Youtubeダイアログを開く
+                ShowYoutubeDialog(TextBox_SrcDir.Text);
+            }
+            else
+            {
+                // ファイル移動する
+                MoveFileAsync(TextBox_SrcDir.Text,
+                    TextBox_DstDir.Text,
+                    TextBox_FileExtention.Text,
+                    Check_CreateYmdFolder.IsChecked ?? false,
+                    Check_SaveSubFolder.IsChecked ?? false,
+                    Check_CopyMode.IsChecked ?? false,
+                    Check_Overwite.IsChecked ?? false,
+                    Check_SeqNumberAdd.IsChecked ?? false);
+            }
         }
 
         /// <summary>
@@ -453,13 +485,13 @@ namespace RecMove
         /// Youtubeのアップロードダイアログを開く
         /// </summary>
         /// <returns></returns>
-        private Task ShowYoutubeDialog()
+        private Task ShowYoutubeDialog(string uploadDir)
         {
             return Task.Factory.StartNew(() =>
             {
                 Dispatcher.Invoke((Action)(() =>
                 {
-                    var win = new YoutubeUploadWindow(EnumerateTargetFiles(TextBox_SrcDir.Text, TextBox_FileExtention.Text));
+                    var win = new YoutubeUploadWindow(EnumerateTargetFiles(uploadDir, TextBox_FileExtention.Text));
                     win.Show();
                     win.Activate();
                 }));
